@@ -10,15 +10,18 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Cap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.maps.model.SquareCap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,25 +36,43 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.google.android.gms.maps.model.JointType.ROUND;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
     private final static int MY_PERMISSIONS_REQUEST = 32;
 
     private GoogleMap mMap;
     private LatLng mOrigin;
     private LatLng mDestination;
+    private LatLng mDestination2;
+    private LatLng mDestination3;
+    public TextView textview3;
+    public TextView textview4;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        mOrigin = new LatLng(41.3949,2.0086);
-        mDestination = new LatLng(41.1258,1.2035);
+        mOrigin = new LatLng(-33.8667, 151.2);
+        mDestination = new LatLng(-31.578, 115.5141);
+        //mDestination2 = new LatLng(41.2, 1.244);
+
+        //mDestination3 = new LatLng(42.2, 1.3);
+        mDestination2 = new LatLng(-34.92788,138.60008);
+        mDestination3 = new LatLng(-28.81223,134.96254);
         requestPermission(Manifest.permission.ACCESS_FINE_LOCATION);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+
+         textview3 = (TextView)findViewById(R.id.textView2);
+         textview4 = (TextView)findViewById(R.id.textView4);
+
+
     }
 
 
@@ -61,16 +82,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         //Google map setup
+        //Google map setup
         mMap = googleMap;
         mMap.getUiSettings().setZoomControlsEnabled(true);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
 
         // Show marker on the screen and adjust the zoom level
-        mMap.addMarker(new MarkerOptions().position(mOrigin).title("Origin"));
-        mMap.addMarker(new MarkerOptions().position(mDestination).title("Destination"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mOrigin,8f));
+        mMap.addMarker(new MarkerOptions().position(mOrigin).title("출발지"));
+        mMap.addMarker(new MarkerOptions().position(mDestination).title("목적지"));
+        mMap.addMarker(new MarkerOptions().position(mDestination2).title("경유지1"));
+        mMap.addMarker(new MarkerOptions().position(mDestination3).title("경유2"));
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDestination2,8f));
         new TaskDirectionRequest().execute(buildRequestUrl(mOrigin,mDestination));
+//        new TaskDirectionRequest().execute(buildRequestUrl(mDestination,mDestination2));
+//        new TaskDirectionRequest().execute(buildRequestUrl(mDestination2,mDestination3));
+
     }
 
     /**
@@ -81,8 +119,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * @return
      */
     private String buildRequestUrl(LatLng origin, LatLng destination) {
+
         String strOrigin = "origin=" + origin.latitude + "," + origin.longitude;
         String strDestination = "destination=" + destination.latitude + "," + destination.longitude;
+
+
         String sensor = "sensor=false";
         String mode = "mode=driving";
 
@@ -90,8 +131,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String output = "json";
         String APIKEY = getResources().getString(R.string.google_maps_key);
 
-        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + param + "&key="+APIKEY;
+        //
+        // String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + param + "&key="+APIKEY;
+        String url = "https://maps.googleapis.com/maps/api/directions/json?" +
+                "origin=sydney,au&destination=perth,au" +
+                "&waypoints=via:-34.92788%2C138.60008%7Cvia:-28.81223%2C134.96254" +
+                "&key=" + APIKEY;
+
         Log.d("TAG", url);
+
+
+
         return url;
     }
 
@@ -142,6 +192,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         protected String doInBackground(String... strings) {
             String responseString = "";
+            Log.d("test1","doInBackground1");
             try {
                 responseString = requestDirection(strings[0]);
             } catch (Exception e) {
@@ -154,8 +205,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected void onPostExecute(String responseString) {
             super.onPostExecute(responseString);
             //Json object parsing
+            Log.d("test1","onPostExecute");
             TaskParseDirection parseResult = new TaskParseDirection();
             parseResult.execute(responseString);
+
         }
     }
 
@@ -168,21 +221,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             JSONObject jsonObject = null;
 
             try {
+                Log.d("test1","doInBackground2");
                 jsonObject = new JSONObject(jsonString[0]);
                 DirectionParser parser = new DirectionParser();
                 routes = parser.parse(jsonObject);
+
+                Log.d("test1",DirectionParser.totalDis);
+                textview3.setText(DirectionParser.totalDis);
+                textview4.setText(DirectionParser.totalDur);
+//                textview2.setText("ho");
+//                textview3.setText(DirectionParser.totalDis);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+
+            
+//            textview3.setText("hwo");
             return routes;
+
         }
+
 
         @Override
         protected void onPostExecute(List<List<HashMap<String, String>>> lists) {
             super.onPostExecute(lists);
             ArrayList points = null;
             PolylineOptions polylineOptions = null;
-
+            Log.d("test1","onPostExecute2");
             for (List<HashMap<String, String>> path : lists) {
                 points = new ArrayList();
                 polylineOptions = new PolylineOptions();
@@ -192,11 +257,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     double lon = Double.parseDouble(point.get("lng"));
 
                     points.add(new LatLng(lat, lon));
+                    
+
                 }
+
+                Cap endCap;
                 polylineOptions.addAll(points);
                 polylineOptions.width(15f);
                 polylineOptions.color(Color.BLUE);
                 polylineOptions.geodesic(true);
+//                polylineOptions.endCap(new SquareCap());
+                polylineOptions.startCap(new SquareCap());
+                polylineOptions.endCap(new SquareCap());
+                polylineOptions.jointType(ROUND);
+
+
+
             }
             if (polylineOptions != null) {
                 mMap.addPolyline(polylineOptions);
@@ -218,4 +294,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     MY_PERMISSIONS_REQUEST);
         }
     }
+
+
+
+
 }

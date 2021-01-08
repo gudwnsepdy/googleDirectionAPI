@@ -16,10 +16,24 @@
         android:layout_weight="2"/>
 
     <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        android:textColor="#E11D1D" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        android:textColor="#3F51B5" />
+
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
         android:layout_margin="8dp"
-        android:text="This is the example of Google Direction"/>
+        android:layout_weight="1"
+        android:text="This is the example of Google Direction" />
 
 </LinearLayout>

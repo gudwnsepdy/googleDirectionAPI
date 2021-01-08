@@ -1,5 +1,8 @@
 package com.andreasgift.googledirectionexample;
 
+import android.util.Log;
+import android.widget.TextView;
+
 import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
@@ -14,6 +17,9 @@ public class DirectionParser {
     /**
      * Receives a JSONObject and returns a list of lists containing latitude and longitude
      */
+    static String totalDis;
+    static String totalDur;
+
     public List<List<HashMap<String, String>>> parse(JSONObject jObject) {
 
         List<List<HashMap<String, String>>> routes = new ArrayList<List<HashMap<String, String>>>();
@@ -24,7 +30,9 @@ public class DirectionParser {
         try {
 
             jRoutes = jObject.getJSONArray("routes");
-
+            String dur;
+            String dur2;
+            String dis;
             /** Traversing all routes */
             for (int i = 0; i < jRoutes.length(); i++) {
                 jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
@@ -33,11 +41,22 @@ public class DirectionParser {
                 /** Traversing all legs */
                 for (int j = 0; j < jLegs.length(); j++) {
                     jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
-
+                    dur = (String) ((JSONObject) ((JSONObject) jLegs.get(j)).get("duration")).get("text");
+                    dis = (String) ((JSONObject) ((JSONObject) jLegs.get(j)).get("distance")).get("text");
+                    totalDis = (String) ((JSONObject) ((JSONObject) jLegs.get(j)).get("distance")).get("text");
+                    totalDur = (String) ((JSONObject) ((JSONObject) jLegs.get(j)).get("duration")).get("text");
+                    Log.d("dur",dur);
+                    Log.d("dis",dis);
                     /** Traversing all steps */
                     for (int k = 0; k < jSteps.length(); k++) {
                         String polyline = "";
+
                         polyline = (String) ((JSONObject) ((JSONObject) jSteps.get(k)).get("polyline")).get("points");
+//                        dur = (String) ((JSONObject) ((JSONObject) jLegs.get(k)).get("duration")).get("text");
+//                        dis = (String) ((JSONObject) ((JSONObject) jLegs.get(k)).get("distance")).get("text");
+//                        totalDis = (String) ((JSONObject) ((JSONObject) jLegs.get(k)).get("distance")).get("text");
+//                        Log.d("dur",dur);
+//                        Log.d("dis",dis);
                         List<LatLng> list = decodePoly(polyline);
 
                         /** Traversing all points */
@@ -55,8 +74,12 @@ public class DirectionParser {
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (Exception e) {
+
         }
+
+
         return routes;
+
     }
 
 
@@ -92,4 +115,7 @@ public class DirectionParser {
         }
         return poly;
     }
+
+
+
 }
